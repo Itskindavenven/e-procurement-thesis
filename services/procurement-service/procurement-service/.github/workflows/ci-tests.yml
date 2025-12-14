@@ -1,0 +1,50 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: procurementdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Run Unit Tests
+      run: mvn test -DskipITs
+
+    - name: Run Integration Tests
+      run: mvn verify -Pintegration-tests
+
+    - name: Generate JaCoCo Report
+      run: mvn jacoco:report
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: target/site/jacoco/

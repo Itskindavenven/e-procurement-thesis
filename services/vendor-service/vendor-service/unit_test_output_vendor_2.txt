@@ -1,0 +1,53 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.tugasakhir:vendor-service >--------------------
+[INFO] Building vendor-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ vendor-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ vendor-service ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 73 source files with javac [debug parameters release 17] to target\classes
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/delivery/DeliveryMapper.java:[12,14] Unmapped target properties: "createdAt, updatedAt, isDeleted".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/delivery/DeliveryMapper.java:[16,17] Unmapped target properties: "createdAt, updatedAt, isDeleted, delivery".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/quotation/QuotationMapper.java:[10,23] Unmapped target properties: "createdAt, updatedAt, isDeleted".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/catalog/CatalogMapper.java:[10,23] Unmapped target properties: "createdAt, updatedAt, isDeleted, catalogItem, priceAdjustment". Mapping from Collection element "VendorCatalogItemVariationDTO variations" to "VendorCatalogItemVariation variations".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/catalog/CatalogMapper.java:[10,23] Unmapped target properties: "createdAt, updatedAt, isDeleted".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/invoice/InvoiceMapper.java:[19,13] Unmapped target properties: "createdAt, updatedAt, isDeleted, fileUrl, catatan".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/rfq/RFQMapper.java:[10,9] Unmapped target properties: "createdAt, updatedAt, isDeleted".
+[WARNING] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/main/java/com/tugasakhir/vendor_service/dto/vendor/VendorAccountMapper.java:[10,19] Unmapped target properties: "createdAt, updatedAt, isDeleted".
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ vendor-service ---
+[INFO] skip non existing resourceDirectory C:\Users\Asus\Desktop\tugas-akhir\backend\services\vendor-service\vendor-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ vendor-service ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug parameters release 17] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.2.5:test (default-test) @ vendor-service ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.tugasakhir.vendor_service.kafka.AdminEventConsumerUnitTest
+16:39:06.581 [main] INFO com.tugasakhir.vendor_service.kafka.AdminEventConsumer -- Received admin event: key=unknown.event, value=vendor-123
+16:39:06.758 [main] INFO com.tugasakhir.vendor_service.kafka.AdminEventConsumer -- Received admin event: key=vendor.rejected, value=vendor-123
+16:39:06.801 [main] INFO com.tugasakhir.vendor_service.kafka.AdminEventConsumer -- Received admin event: key=vendor.approved, value=vendor-123
+16:39:06.818 [main] INFO com.tugasakhir.vendor_service.kafka.AdminEventConsumer -- Received admin event: key=vendor.revision.requested, value=vendor-123
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.941 s -- in com.tugasakhir.vendor_service.kafka.AdminEventConsumerUnitTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  30.325 s
+[INFO] Finished at: 2025-12-08T16:39:06+07:00
+[INFO] ------------------------------------------------------------------------

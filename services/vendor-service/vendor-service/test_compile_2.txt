@@ -1,0 +1,45 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.tugasakhir:vendor-service >--------------------
+[INFO] Building vendor-service 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ vendor-service ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ vendor-service ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ vendor-service ---
+[INFO] skip non existing resourceDirectory C:\Users\Asus\Desktop\tugas-akhir\backend\services\vendor-service\vendor-service\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ vendor-service ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 10 source files with javac [debug parameters release 17] to target\test-classes
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/test/java/com/tugasakhir/vendor_service/service/rfq/RFQServiceTest.java:[56,15] cannot find symbol
+  symbol:   method setStatus(java.lang.String)
+  location: variable rfqDTO of type com.tugasakhir.vendor_service.dto.rfq.RFQDTO
+[INFO] 1 error
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  6.655 s
+[INFO] Finished at: 2025-12-08T16:26:13+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.13.0:testCompile (default-testCompile) on project vendor-service: Compilation failure
+[ERROR] /C:/Users/Asus/Desktop/tugas-akhir/backend/services/vendor-service/vendor-service/src/test/java/com/tugasakhir/vendor_service/service/rfq/RFQServiceTest.java:[56,15] cannot find symbol
+[ERROR]   symbol:   method setStatus(java.lang.String)
+[ERROR]   location: variable rfqDTO of type com.tugasakhir.vendor_service.dto.rfq.RFQDTO
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

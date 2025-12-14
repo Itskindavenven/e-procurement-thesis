@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  admin-service:
+    build: .
+    container_name: admin-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/admin_service
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - AUTH_SERVICE_URL=http://auth-service:8081 # Assuming auth-service is in the same network
+    depends_on:
+      - postgres
+      - kafka
+    networks:
+      - e-procurement-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: admin-postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=admin_service
+    ports:
+      - "5433:5432" # Mapped to 5433 to avoid conflict with local Postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - e-procurement-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: admin-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "22181:2181"
+    networks:
+      - e-procurement-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: admin-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - e-procurement-network
+
+networks:
+  e-procurement-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
