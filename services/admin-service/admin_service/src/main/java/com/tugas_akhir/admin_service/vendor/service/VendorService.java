@@ -74,4 +74,27 @@ public class VendorService {
 
         return vendorMapper.toDTO(updatedRegistration);
     }
+
+    @Transactional
+    public void deactivateVendor(UUID id) {
+        VendorRegistration registration = vendorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vendor Registration not found with ID: " + id));
+
+        registration.setVerificationStatus("INACTIVE");
+        vendorRepository.save(registration);
+
+        kafkaTemplate.send("admin.vendor.events", "vendor.deactivated", registration.getVendorId().toString());
+    }
+
+    @Transactional
+    public void addEvaluationNote(UUID id, String note) {
+        VendorRegistration registration = vendorRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vendor Registration not found with ID: " + id));
+
+        String currentNotes = registration.getAdminNotes();
+        String newNotes = (currentNotes == null || currentNotes.isEmpty()) ? note : currentNotes + "\n" + note;
+
+        registration.setAdminNotes(newNotes);
+        vendorRepository.save(registration);
+    }
 }

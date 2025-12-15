@@ -52,4 +52,19 @@ public class VendorController {
         String notes = payload.get("notes");
         return ResponseEntity.ok(vendorService.verifyVendor(id, status, notes));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deactivateVendor(@PathVariable UUID id) {
+        vendorService.deactivateVendor(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/notes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> addEvaluationNote(@PathVariable UUID id, @RequestBody Map<String, String> payload) {
+        String note = payload.get("note");
+        vendorService.addEvaluationNote(id, note);
+        return ResponseEntity.ok().build();
+    }
 }

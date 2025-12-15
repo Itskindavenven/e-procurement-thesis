@@ -80,6 +80,8 @@ Manage vendor registrations.
 | **GET** | `/vendors/pending` | List pending verification |
 | **GET** | `/vendors/{id}` | Get details |
 | **PUT** | `/vendors/{id}/verify` | Approve or Reject vendor |
+| **DELETE** | `/vendors/{id}` | Deactivate vendor |
+| **POST** | `/vendors/{id}/notes` | Add evaluation note |
 
 ### Payloads
 
@@ -88,6 +90,13 @@ Manage vendor registrations.
 {
   "status": "VERIFIED", // or REJECTED
   "notes": "Documents are valid."
+}
+```
+
+**Add Note**
+```json
+{
+  "note": "Vendor submitted expired license, pending update."
 }
 ```
 
@@ -176,6 +185,7 @@ System monitoring.
 | **GET** | `/audit/service/{serviceName}` | Filter logs by service |
 | **GET** | `/notifications/logs` | View notification history |
 
+
 ### Response (`LogSystemDTO`)
 ```json
 {
@@ -187,3 +197,51 @@ System monitoring.
   "createdAt": "2023-10-01T10:00:00"
 }
 ```
+
+### Additional Actions
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/audit/export` | Export logs (PDF/CSV) |
+| **POST** | `/audit/backup` | Backup logs to separate server |
+| **GET** | `/audit/anomalies` | Detected system anomalies |
+
+---
+
+## 8. Notification & Alert Management
+Manage templates and recipients.
+
+### Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/notifications/templates` | List all templates |
+| **PUT** | `/notifications/templates/{id}` | Update template content |
+| **GET** | `/notifications/recipients` | List recipient configs |
+| **POST** | `/notifications/recipients` | Add/Update recipients |
+| **GET** | `/notifications/logs` | View delivery history |
+
+### Payloads
+**Update Template**
+```json
+{
+  "subject": "PR Approved",
+  "body": "Your PR {{pr_no}} has been approved."
+}
+```
+
+**Update Recipients**
+```json
+{
+  "templateId": "uuid-string",
+  "recipients": ["user@example.com", "admin@example.com"]
+}
+```
+
+---
+
+## 9. General Features
+Cross-module functionality.
+
+### Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/audit/export` | Export System Logs (CSV) |

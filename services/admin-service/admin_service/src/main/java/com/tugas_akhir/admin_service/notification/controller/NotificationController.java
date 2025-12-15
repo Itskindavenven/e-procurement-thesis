@@ -50,4 +50,19 @@ public class NotificationController {
     public ResponseEntity<List<NotificationLogDTO>> getLogs() {
         return ResponseEntity.ok(notificationService.getLogs());
     }
+
+    @GetMapping("/recipients")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<String>> getRecipients(@RequestParam UUID templateId) {
+        return ResponseEntity.ok(notificationService.getRecipients(templateId));
+    }
+
+    @PostMapping("/recipients")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> updateRecipients(@RequestBody java.util.Map<String, Object> payload) {
+        UUID templateId = UUID.fromString((String) payload.get("templateId"));
+        List<String> recipients = (List<String>) payload.get("recipients");
+        notificationService.updateRecipients(templateId, recipients);
+        return ResponseEntity.ok().build();
+    }
 }

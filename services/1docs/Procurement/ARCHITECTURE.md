@@ -1,64 +1,38 @@
 # Procurement Service Architecture
 
-## 1. Overview
-The **Procurement Service** is the core business engine of the e-Procurement system. It handles the complete lifecycle of procurement, from the initial request (PR) by operators, through supervisor approval workflows, to the creation of Purchase Orders (PO), and finally the receiving of goods/services.
+## 1. Data Entities
 
-## 2. Technical Stack
-*   **Framework**: Spring Boot 3.x
-*   **Language**: Java 21
-*   **Database**: PostgreSQL (Operational Data)
-*   **Messaging**: Kafka (Event Driven Architecture)
-*   **Documentation**: OpenAPI (Swagger)
+### 1.1 Core Entities (Table 4.4.5.1)
 
-## 3. Package Structure
-The service is structured by **Domain-Driven Design (DDD)** principles, grouped by functional domains:
+| Entity | Description | Fields |
+| :--- | :--- | :--- |
+| **ProcurementRequest** | Stores core information of a procurement request submitted by an Operator. | `idRequest`, `idOperator`, `idVendor`, `description`, `priority` (normal/urgent/critical), `status` (draft/submitted/approved/rejected/returned/expired), `deadline_date`, `timestamp` |
+| **ProcurementItem** | List of items selected by Operator from the chosen Vendor's catalog. | `idItem`, `idRequest`, `idCatalogVendor`, `item_name`, `quantity`, `unit_price`, `vat` (ppn), `subtotal` |
+| **DeliveryDetail** | Information regarding the delivery of goods or services. | `idDelivery`, `idRequest`, `delivery_address`, `operator_location`, `planned_delivery_date`, `delivery_notes` |
+| **AdditionalDocument** | Supporting documents uploaded by the Operator during the request summary phase. | `idDocument`, `idRequest`, `fileName`, `fileType`, `fileSize`, `fileUrl` |
+| **ApprovalRecord** | Log of decisions made by Supervisors or Admins regarding a request. | `idApproval`, `idRequest`, `idSupervisor`, `decision` (approve/reject/return), `feedback_notes`, `timestamp` |
+| **ProcurementOrder** | The Purchase Order (PO) document generated after a PR is approved. | `idPO`, `idRequest`, `po_number`, `po_status`, `po_date` |
 
-```
-com.tugas_akhir.procurement_service
-├── common          # Shared enums, utilities, and base classes
-├── config          # Application configuration
-├── domain
-│   ├── additionaldocument  # Attachments management
-│   ├── audit               # Approval workflows and Audit trails
-│   ├── dashboard           # Analytics for Operators and Supervisors
-│   ├── delivery            # Delivery tracking
-│   ├── inventory           # Stock integration
-│   ├── procurementorder    # PO generation and management
-│   ├── procurementrequest  # PR creation and lifecycle (Main Domain)
-│   ├── receiving           # Goods Receiving notes (GRN)
-│   ├── reporting           # Reporting service
-│   ├── serviceProgress     # Tracking service-based procurement
-│   └── termin              # Payment terms
-├── event           # Kafka Producers and Consumers
-└── integration     # Feign Clients for external services
-```
+### 1.2 Extension Entities (Service Procurement)
+*Inferred from Service Use Cases*
 
-## 4. Key Domains
+| Entity | Description | Fields |
+| :--- | :--- | :--- |
+| **ServiceScope** | Details of the service scope selected from the vendor. | `idScope`, `idRequest`, `scope_description`, `technical_specifications` |
+| **ServiceTermin** | Payment terms and phases for service jobs. | `idTermin`, `idRequest`, `term_name` (e.g. DP), `percentage`, `amount`, `status` (Submitted/Reviewed/Completed) |
+| **ServiceProgress** | Tracking of service execution. | `idProgress`, `idTermin`, `status` (Waiting/Completed/Verified), `report_url`, `confirmation_notes` |
 
-### A. Procurement Request (PR)
-*   **Role**: Manages the creation and editing of requests.
-*   **Flow**: Draft -> Submitted -> Approved/Rejected.
-*   **Actors**: Operators (Create), Supervisors (Approve).
-*   **Entities**: `ProcurementRequest`, `ProcurementItem`.
+## 2. High-Level Architecture
 
-### B. Approval Workflow (Audit Domain)
-*   **Role**: Handles the decision-making process.
-*   **Features**:
-    *   **Approve**: Moves PR to "APPROVED" and triggers PO creation.
-    *   **Reject**: Terminates the PR.
-    *   **Return**: Sends PR back to Operator for revision.
-    *   **Feedback**: Adds comments without changing status.
+### 2.1 Service Interaction
+*   **Vendor Service**: Source of Vendor Data, Catalogs, and Service Scopes.
+*   **Inventory Service**: Updated upon "Goods Receiving" (Stock Increase) and "Service Confirmation" (if applicable).
+*   **Finance Service**: Receives Budget Top-Up requests and Payment triggers upon "Service Confirmation" or "PO Acceptance".
+*   **Notification Service**: Handles alerts to Operators (Status changes) and Supervisors (Approvals needed, Deadlines).
+*   **Audit Service**: Logs all significant actions (Create, Submit, Approve, Reject, Receive).
 
-### C. Receiving
-*   **Role**: Closes the loop on physical goods.
-*   **Flow**: Validates incoming goods against the PO.
-
-### D. Dashboards
-*   **Role**: Provides aggregated data for UI.
-*   **Operator**: View own requests, pending actions.
-*   **Supervisor**: View team's requests, pending approvals.
-
-## 5. Integration Patterns
-*   **Kafka Consumer**: Listens for Admin corrections (`procurement.metadata.updated`) and investigation flags.
-*   **Kafka Producer**: Publishes events for status changes (e.g., `PR_APPROVED`, `PO_CREATED`) to trigger notifications and audit logs.
-*   **Feign Clients**: (Likely used) to fetch User details from Auth/Admin services if not effectively cached.
+### 2.2 Event-Driven Flows
+*   **PR Submitted** -> Event published -> Notification to Supervisor.
+*   **PR Approved** -> Event published -> `ProcurementOrder` created.
+*   **PO Accepted (Goods)** -> Event published -> Inventory Stock updated.
+*   **Service Verified** -> Event published -> Finance pending payment.

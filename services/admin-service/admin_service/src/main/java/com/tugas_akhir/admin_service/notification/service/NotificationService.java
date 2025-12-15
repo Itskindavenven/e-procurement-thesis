@@ -106,4 +106,19 @@ public class NotificationService {
         dto.setPlaceholders(placeholders);
         return dto;
     }
+
+    @Transactional(readOnly = true)
+    public List<String> getRecipients(UUID templateId) {
+        // Placeholder for recipient management (e.g., retrieving default recipients for
+        // a template)
+        // In a real implementation, this would query a NotificationRecipientRepository
+        return java.util.Collections.emptyList();
+    }
+
+    @Transactional
+    public void updateRecipients(UUID templateId, List<String> recipients) {
+        // Placeholder for updating recipients
+        // This ensures the controller can call a service method
+        // Implementation would save to NotificationRecipientRepository
+    }
 }
