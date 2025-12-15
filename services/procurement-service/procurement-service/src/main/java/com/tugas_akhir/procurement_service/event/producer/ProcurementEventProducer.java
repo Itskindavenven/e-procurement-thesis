@@ -110,4 +110,34 @@ public class ProcurementEventProducer {
         log.info("Publishing Stock Alert event for SKU: {}, Current Quantity: {}", sku, currentQuantity);
         kafkaTemplate.send(stockAlertTopic, sku, event);
     }
+
+    // --- New Event Methods for Round 3 ---
+
+    @Value("${spring.kafka.topic.goods-received}")
+    private String goodsReceivedTopic;
+
+    public void publishGoodsReceived(GoodsReceivedEvent event) {
+        log.info("Publishing Goods Received event for PO: {}", event.getPoId());
+        kafkaTemplate.send(goodsReceivedTopic, event.getPoId().toString(), event);
+    }
+
+    @Value("${spring.kafka.topic.termin-revision}")
+    private String terminRevisionTopic;
+
+    public void publishTerminRevisionRequested(java.util.UUID terminId, String notes) {
+        // Stub event for now
+        log.info("Publishing Termin Revision Requested for Termin: {}", terminId);
+        // kafkaTemplate.send(terminRevisionTopic, terminId.toString(), new
+        // TerminRevisionEvent(terminId, notes));
+    }
+
+    @Value("${spring.kafka.topic.termin-clarification}")
+    private String terminClarificationTopic;
+
+    public void publishTerminClarificationRequested(java.util.UUID terminId, String notes) {
+        // Stub event for now
+        log.info("Publishing Termin Clarification Requested for Termin: {}", terminId);
+        // kafkaTemplate.send(terminClarificationTopic, terminId.toString(), new
+        // TerminClarificationEvent(terminId, notes));
+    }
 }

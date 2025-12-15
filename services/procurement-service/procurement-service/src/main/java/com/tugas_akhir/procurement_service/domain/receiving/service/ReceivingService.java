@@ -30,8 +30,7 @@ public class ReceivingService {
 
     private final ReceivingRecordRepository receivingRecordRepository;
     private final POHeaderRepository poHeaderRepository;
-    // TODO: Add event producer for inventory integration
-    // private final ProcurementEventProducer eventProducer;
+    private final ProcurementEventProducer eventProducer;
 
     /**
      * List POs awaiting receiving
@@ -91,8 +90,10 @@ public class ReceivingService {
         po.setUpdatedBy(operatorId);
         poHeaderRepository.save(po);
 
-        // TODO: Publish goods received event for inventory update
-        // eventProducer.publishGoodsReceived(createGoodsReceivedEvent(po, record));
+        // Publish goods received event for inventory update
+        eventProducer.publishGoodsReceived(
+                new com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.GoodsReceivedEvent(po.getId(),
+                        operatorId));
 
         log.info("Full delivery accepted for PO: {}", poId);
 

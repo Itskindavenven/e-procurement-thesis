@@ -80,9 +80,15 @@ public class ScheduledTaskService {
      */
     private void sendReminderEvent(ProcurementRequest pr) {
         try {
-            // TODO: Create and publish reminder event
-            // ProcurementEvents.PRReminderEvent event = createReminderEvent(pr);
-            // eventProducer.publishPRReminder(event);
+            com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.PRReminderEvent event = com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.PRReminderEvent
+                    .builder()
+                    .procurementRequestId(pr.getId())
+                    .operatorId(pr.getOperatorId())
+                    .submittedAt(pr.getCreatedAt())
+                    .hoursWaiting((int) java.time.Duration.between(pr.getCreatedAt(), LocalDateTime.now()).toHours())
+                    .build();
+
+            eventProducer.publishPRReminder(event);
 
             log.info("Sent reminder for PR: {}", pr.getId());
         } catch (Exception e) {
@@ -99,9 +105,16 @@ public class ScheduledTaskService {
             pr.setStatus(ProcurementStatus.ESCALATED);
             procurementRequestRepository.save(pr);
 
-            // TODO: Create and publish escalation event
-            // ProcurementEvents.PRESCalatedEvent event = createEscalationEvent(pr);
-            // eventProducer.publishPREscalated(event);
+            com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.PRESCalatedEvent event = com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.PRESCalatedEvent
+                    .builder()
+                    .procurementRequestId(pr.getId())
+                    .operatorId(pr.getOperatorId())
+                    .submittedAt(pr.getCreatedAt())
+                    .hoursWaiting((int) java.time.Duration.between(pr.getCreatedAt(), LocalDateTime.now()).toHours())
+                    .escalationReason("Auto-escalation: No response after 48 hours")
+                    .build();
+
+            eventProducer.publishPREscalated(event);
 
             log.info("Escalated PR to Admin: {}", pr.getId());
         } catch (Exception e) {

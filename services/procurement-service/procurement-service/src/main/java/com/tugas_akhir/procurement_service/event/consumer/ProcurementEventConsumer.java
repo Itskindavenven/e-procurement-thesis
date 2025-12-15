@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class ProcurementEventConsumer {
 
     private final InventoryDomainService inventoryService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     @KafkaListener(topics = "${spring.kafka.topic.vendor-termin-status}", groupId = "${spring.kafka.consumer.group-id}")
     public void consumeVendorTerminStatus(String message) {
@@ -26,11 +27,16 @@ public class ProcurementEventConsumer {
         // Assuming message format: "SKU,ItemName,Qty,PO-REF" for simplicity or just
         // trigger dummy
         try {
-            // Placeholder: Parse logic
-            // String[] parts = message.split(",");
-            // inventoryService.processGoodsReceived(parts[0], parts[1],
-            // Integer.parseInt(parts[2]), parts[3]);
-            log.info("Processed stock update for received goods.");
+            // Expected format: {"sku":"...", "itemName":"...", "quantity":10,
+            // "poReference":"..."}
+            com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(message);
+            String sku = node.get("sku").asText();
+            String itemName = node.path("itemName").asText("Unknown");
+            int quantity = node.get("quantity").asInt();
+            String poReference = node.path("poReference").asText("REF-" + System.currentTimeMillis());
+
+            inventoryService.processGoodsReceived(sku, itemName, quantity, poReference);
+            log.info("Processed stock update for received goods: {}", sku);
         } catch (Exception e) {
             log.error("Failed to process receiving event", e);
         }

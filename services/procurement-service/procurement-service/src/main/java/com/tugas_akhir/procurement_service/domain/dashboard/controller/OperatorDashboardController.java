@@ -8,7 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 import java.util.UUID;
 
@@ -20,6 +26,7 @@ import java.util.UUID;
 @RequestMapping("/api/operator/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Operator - Dashboard", description = "Dashboard and reporting APIs for Operator")
+@PreAuthorize("hasRole('OPERATOR')")
 public class OperatorDashboardController {
 
     private final DashboardOperatorService dashboardService;
@@ -69,5 +76,28 @@ public class OperatorDashboardController {
         MonthlyPRStatsDTO stats = dashboardService.getMonthlyStats(operatorId, year, month);
 
         return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * Download Report (PDF/Excel)
+     */
+    @GetMapping("/reports/download")
+    @Operation(summary = "Download Report", description = "Generate and download procurement report")
+    public ResponseEntity<Resource> downloadReport(
+            @RequestHeader("X-User-Id") UUID operatorId,
+            @RequestParam String reportType,
+            @RequestParam String format) {
+
+        log.info("Downloading report for operator: {}, type={}, format={}", operatorId, reportType, format);
+
+        // Stub implementation for prototype
+        String content = "Operator Report " + reportType + " in " + format;
+        ByteArrayResource resource = new ByteArrayResource(content.getBytes());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=operator_report." + format.toLowerCase())
+                .contentLength(resource.contentLength())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

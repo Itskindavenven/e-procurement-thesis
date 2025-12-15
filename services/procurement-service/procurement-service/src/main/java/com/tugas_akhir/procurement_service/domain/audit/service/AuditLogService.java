@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.tugas_akhir.procurement_service.domain.audit.entity.AuditLog;
+import com.tugas_akhir.procurement_service.domain.audit.repository.AuditLogRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuditLogService {
 
-    // TODO: Add AuditLogRepository when audit_logs table is created
+    private final AuditLogRepository auditLogRepository;
 
     /**
      * Log an audit entry
@@ -31,8 +33,7 @@ public class AuditLogService {
             UUID performedBy, String notes) {
         log.info("AUDIT: {} {} - {} by {} ({})", entityType, entityId, action, performedBy, notes);
 
-        // TODO: Save to database
-        AuditLogDTO auditLog = AuditLogDTO.builder()
+        AuditLog logEntry = AuditLog.builder()
                 .entityType(entityType)
                 .entityId(entityId)
                 .action(action)
@@ -41,8 +42,7 @@ public class AuditLogService {
                 .notes(notes)
                 .build();
 
-        // For now, just log to console
-        // In production, save to audit_logs table
+        auditLogRepository.save(logEntry);
     }
 
     /**
@@ -92,8 +92,16 @@ public class AuditLogService {
     public List<AuditLogDTO> getPRActivityHistory(UUID prId) {
         log.info("Getting activity history for PR: {}", prId);
 
-        // TODO: Query from audit_logs table where entity_type = 'PR' and entity_id =
-        // prId
-        return new ArrayList<>();
+        return auditLogRepository.findByEntityIdOrderByTimestampDesc(prId).stream()
+                .map(log -> AuditLogDTO.builder()
+                        .id(log.getId())
+                        .entityType(log.getEntityType())
+                        .entityId(log.getEntityId())
+                        .action(log.getAction())
+                        .performedBy(log.getPerformedBy())
+                        .timestamp(log.getTimestamp())
+                        .notes(log.getNotes())
+                        .build())
+                .toList();
     }
 }

@@ -2,12 +2,15 @@ package com.tugas_akhir.procurement_service.domain.audit.service;
 
 import com.tugas_akhir.procurement_service.common.enums.ApprovalDecision;
 import com.tugas_akhir.procurement_service.common.enums.ApprovalRole;
+import com.tugas_akhir.procurement_service.common.enums.ProcurementPriority;
 import com.tugas_akhir.procurement_service.common.enums.ProcurementStatus;
 import com.tugas_akhir.procurement_service.domain.audit.dto.ApprovalDTOs.*;
 import com.tugas_akhir.procurement_service.domain.audit.entity.ApprovalHistory;
 import com.tugas_akhir.procurement_service.domain.audit.repository.ApprovalHistoryRepository;
 import com.tugas_akhir.procurement_service.domain.procurementrequest.entity.ProcurementRequest;
 import com.tugas_akhir.procurement_service.domain.procurementrequest.repository.ProcurementRequestRepository;
+import com.tugas_akhir.procurement_service.domain.procurementorder.service.POService;
+import com.tugas_akhir.procurement_service.event.dto.ProcurementEvents.*;
 import com.tugas_akhir.procurement_service.event.producer.ProcurementEventProducer;
 import com.tugas_akhir.procurement_service.exception.ResourceNotFoundException;
 import com.tugas_akhir.procurement_service.exception.ValidationException;
@@ -19,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -33,6 +37,7 @@ public class ApprovalService {
     private final ProcurementRequestRepository procurementRequestRepository;
     private final ApprovalHistoryRepository approvalHistoryRepository;
     private final ProcurementEventProducer eventProducer;
+    private final POService poService;
 
     /**
      * Get list of pending approvals for supervisor
@@ -69,10 +74,24 @@ public class ApprovalService {
         pr.setUpdatedBy(supervisorId);
         procurementRequestRepository.save(pr);
 
-        // Publish PR approved event for PO creation
-        // TODO: Publish event
-        // eventProducer.sendPrApprovedEvent(createPRApprovedEvent(pr, supervisorId,
-        // request.getNote()));
+        // Create PO
+        poService.createPOFromPR(pr);
+
+        // Calculate total amount
+        BigDecimal totalAmount = pr.getItems().stream()
+                .map(item -> item.getUnitPrice() != null
+                        ? item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
+                        : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Publish PR approved event
+        eventProducer.publishPRApproved(PRApprovedEvent.builder()
+                .procurementRequestId(pr.getId())
+                .supervisorId(supervisorId)
+                .approvedAt(LocalDateTime.now())
+                .approvalNote(request.getNote())
+                .totalAmount(totalAmount)
+                .build());
 
         log.info("Procurement request approved successfully: {}", prId);
 
@@ -106,9 +125,12 @@ public class ApprovalService {
         procurementRequestRepository.save(pr);
 
         // Publish PR rejected event for notification
-        // TODO: Publish event
-        // eventProducer.sendPrRejectedEvent(createPRRejectedEvent(pr, supervisorId,
-        // request.getNote()));
+        eventProducer.publishPRRejected(PRRejectedEvent.builder()
+                .procurementRequestId(pr.getId())
+                .supervisorId(supervisorId)
+                .rejectedAt(LocalDateTime.now())
+                .rejectionReason(request.getNote())
+                .build());
 
         log.info("Procurement request rejected: {}", prId);
 
@@ -142,7 +164,12 @@ public class ApprovalService {
         procurementRequestRepository.save(pr);
 
         // Publish PR returned event for notification
-        // TODO: Publish event
+        eventProducer.publishPRReturned(PRReturnedEvent.builder()
+                .procurementRequestId(pr.getId())
+                .supervisorId(supervisorId)
+                .returnedAt(LocalDateTime.now())
+                .returnReason(request.getNote())
+                .build());
 
         log.info("Procurement request returned for revision: {}", prId);
 
@@ -179,6 +206,29 @@ public class ApprovalService {
         log.info("Feedback added to procurement request: {}", prId);
 
         return createApprovalResponse(approval.getId(), pr, ApprovalDecision.FEEDBACK_ONLY);
+    }
+
+    /**
+     * Update PR Priority
+     */
+    @Transactional
+    public void updatePriority(UUID prId, ProcurementPriority priority, UUID supervisorId) {
+        log.info("Updating priority for PR: {} to {} by supervisor: {}", prId, priority, supervisorId);
+
+        ProcurementRequest pr = procurementRequestRepository.findById(prId)
+                .orElseThrow(() -> new ResourceNotFoundException("Procurement Request not found: " + prId));
+
+        // Only allow if not processed yet (or maybe allow always? Use Case implication)
+        // Assuming allow if not finalized.
+        if (pr.getStatus() == ProcurementStatus.APPROVED || pr.getStatus() == ProcurementStatus.REJECTED) {
+            throw new ValidationException("Cannot change priority of finalized PR");
+        }
+
+        pr.setPriority(priority);
+        pr.setUpdatedBy(supervisorId);
+        procurementRequestRepository.save(pr);
+
+        // Could publish an event for priority change notification
     }
 
     // Helper methods

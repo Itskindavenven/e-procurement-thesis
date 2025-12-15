@@ -3,6 +3,7 @@ package com.tugas_akhir.procurement_service.domain.audit.controller;
 import com.tugas_akhir.procurement_service.common.util.SecurityUtils;
 import com.tugas_akhir.procurement_service.domain.audit.dto.ApprovalDTOs.*;
 import com.tugas_akhir.procurement_service.domain.audit.service.ApprovalService;
+import com.tugas_akhir.procurement_service.domain.dashboard.dto.DashboardDTOs.PriorityUpdateRequestDTO; // Import from DashboardDTOs since we put it there
 import com.tugas_akhir.procurement_service.domain.procurementrequest.dto.ProcurementRequestDTOs.ProcurementRequestResponseDTO;
 import com.tugas_akhir.procurement_service.domain.procurementrequest.service.ProcurementRequestService;
 
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ import java.util.UUID;
 @RequestMapping("/api/supervisor/approvals")
 @RequiredArgsConstructor
 @Tag(name = "Supervisor - Approvals", description = "APIs for Supervisor to review and approve procurement requests")
+@PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMIN')")
 public class SupervisorApprovalController {
 
     private final ApprovalService approvalService;
@@ -155,5 +158,38 @@ public class SupervisorApprovalController {
         ApprovalResponseDTO response = approvalService.addFeedback(prId, request, supervisorId);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Update PR Priority
+     */
+    @PutMapping("/pr/{prId}/priority")
+    @Operation(summary = "Update Priority", description = "Update the priority of a procurement request")
+    public ResponseEntity<Void> updatePriority(
+            @PathVariable UUID prId,
+            @Valid @RequestBody PriorityUpdateRequestDTO request,
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader(value = "X-User-Id", required = false) UUID headerUserId) {
+
+        UUID supervisorId = SecurityUtils.getUserIdFromJwt(jwt);
+        if (headerUserId != null) {
+            SecurityUtils.validateUserIdMatch(headerUserId, jwt);
+        }
+
+        log.info("Updating priority for PR: {} by supervisor: {}", prId, supervisorId);
+
+        // Ideally call a method in ApprovalService or ProcurementRequestService
+        // For now, implementing direct delegator logic here or we need to add method to
+        // Service
+        // Let's add simple logic here or delegate.
+        // We will delegate to a new method in ApprovalService (defined below) or
+        // existing one.
+        // Since ApprovalService is for approvals, let's look at
+        // ProcurementRequestService for updates?
+        // But this is Supervisor action. Let's delegate to ApprovalService for now as
+        // it handles Supervisor actions.
+        approvalService.updatePriority(prId, request.getPriority(), supervisorId);
+
+        return ResponseEntity.ok().build();
     }
 }

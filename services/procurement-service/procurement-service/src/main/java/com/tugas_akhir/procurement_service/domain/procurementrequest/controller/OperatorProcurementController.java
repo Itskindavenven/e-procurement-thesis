@@ -17,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ import java.util.UUID;
 @RequestMapping("/api/operator/procurement/requests")
 @RequiredArgsConstructor
 @Tag(name = "Operator - Procurement Requests", description = "APIs for Operator to manage procurement requests")
+@PreAuthorize("hasRole('OPERATOR')")
 public class OperatorProcurementController {
 
     private final ProcurementRequestService procurementRequestService;

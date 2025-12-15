@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.tugas_akhir.procurement_service.common.enums.ProcurementPriority;
 import java.util.Map;
 import java.util.UUID;
 
@@ -151,5 +152,28 @@ public class DashboardDTOs {
         private Integer revisionRequested;
         private BigDecimal totalValue;
         private BigDecimal approvedValue;
+    }
+
+    /**
+     * DTO for Budget Top-Up Request
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BudgetTopUpRequestDTO {
+        private BigDecimal amount;
+        private String reason;
+    }
+
+    /**
+     * DTO for Priority Update Request
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PriorityUpdateRequestDTO {
+        private ProcurementPriority priority;
     }
 }

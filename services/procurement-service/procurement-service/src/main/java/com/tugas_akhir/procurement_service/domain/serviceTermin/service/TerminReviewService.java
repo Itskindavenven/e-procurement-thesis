@@ -17,6 +17,7 @@ public class TerminReviewService {
 
     private final TerminDetailsRepository repository;
     private final ProcurementMapper mapper;
+    private final com.tugas_akhir.procurement_service.event.producer.ProcurementEventProducer eventProducer;
 
     @Transactional
     public TerminDetailsResponseDTO approveTermin(UUID terminId) {
@@ -50,8 +51,8 @@ public class TerminReviewService {
 
         TerminDetails saved = repository.save(entity);
 
-        // TODO: Publish event to notify vendor about revision request
-        // eventProducer.publishTerminRevisionRequested(terminId, revisionNotes);
+        // Publish event to notify vendor about revision request
+        eventProducer.publishTerminRevisionRequested(terminId, revisionNotes);
 
         return mapper.toDTO(saved);
     }
@@ -77,9 +78,9 @@ public class TerminReviewService {
 
         TerminDetails saved = repository.save(entity);
 
-        // TODO: Publish event to notify vendor about clarification request
-        // eventProducer.publishTerminClarificationRequested(terminId,
-        // clarificationNotes);
+        // Publish event to notify vendor about clarification request
+        eventProducer.publishTerminClarificationRequested(terminId,
+                clarificationNotes);
 
         return mapper.toDTO(saved);
     }

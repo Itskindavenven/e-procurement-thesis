@@ -105,8 +105,8 @@ public class ProcurementRequest {
     @Builder.Default
     private List<ApprovalHistory> approvalHistories = new ArrayList<>();
 
-    // TODO: Phase 3 - PO Management
-    // @OneToMany(mappedBy = "procurementRequest", cascade = CascadeType.ALL,
-    // orphanRemoval = true)
-    // private List<POHeader> poHeaders;
+    // Phase 3 - PO Management
+    @OneToMany(mappedBy = "procurementRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<com.tugas_akhir.procurement_service.domain.procurementorder.entity.POHeader> poHeaders = new ArrayList<>();
 }
