@@ -2,21 +2,28 @@
 
 ## High-Level Diagram
 
+The Document Service focuses on storage but integrates with the ecosystem by publishing events when files are uploaded or deleted.
+
 ```mermaid
 graph TD
     Client[Web Client] -->|Multipart Upload| Gateway
     Gateway -->|Forward| DocController
 
     subgraph "Document Service"
-        DocController -->|Validate| ServiceLogic
-        ServiceLogic -->|Store Meta| MetaDB[(Metadata DB)]
-        ServiceLogic -->|Save File| StorageProvider
+        DocController -->|Stream| StorageProvider
+        DocController -->|Save Meta| MetaDB[(Metadata DB)]
         
-        subgraph "Storage Strategy"
-            StorageProvider -->|Option A| LocalFS[Local Filesystem]
-            StorageProvider -->|Option B| S3[AWS S3 / MinIO]
-        end
+        ServiceLogic[Async Service Logic]
+        DocController -.->|Trigger| ServiceLogic
+        ServiceLogic -->|Publish: document.uploaded| Kafka[Kafka Event Bus]
     end
+    
+    subgraph "Storage Strategy"
+        StorageProvider -->|Write| S3[AWS S3 / Local]
+    end
+    
+    Kafka -->|Consume| Audit[Audit Service]
+    Kafka -->|Consume| VirusScan[Virus Scanner Worker]
 ```
 
 ## Component Description

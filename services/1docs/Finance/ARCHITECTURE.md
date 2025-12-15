@@ -1,22 +1,35 @@
 # Finance Service - Architecture & Data Entities
 
 ## Component Diagram
-The Finance Service interacts with:
-- **Procurement Service** (PO Data, POD)
-- **Vendor Service** (Invoice Submission, Vendor Info)
-- **Notification Service** (Alerts)
-- **Audit Service** (Logging)
-- **Internal Payment Channel** (Mock/Dummy Banking API)
+The Finance Service interacts with other services primarily via **Asynchronous Events** (Kafka) to decouple financial processing from operational logic.
+
+- **Procurement Service** -> Publishes `po.approved` -> FInance creates pending Invoice.
+- **Vendor Service** -> Publishes `invoice.submitted` -> Finance starts validation task.
+- **Payment Gateway** -> Publishes `payment.status_changed` (or Callback) -> Finance updates Invoice status.
 
 ```mermaid
 graph TD
-    Vendor[Vendor Service] -->|Submit Invoice| Finance[Finance Service]
-    Procurement[Procurement Service] -->|PO & POD Data| Finance
-    Finance -->|Payment Request| PaymentGW[Internal Payment Channel]
-    PaymentGW -->|Callback/Status| Finance
-    Finance -->|Notifications| Notif[Notification Service]
-    Finance -->|Logs| Audit[Audit Service]
-    Supervisor -->|TopUp Request| Finance
+    subgraph "External Event Producers"
+        Gen[Event Bus (Kafka)]
+        Proc[Procurement Service] -->|Publish: po.approved| Gen
+        Ven[Vendor Service] -->|Publish: invoice.submitted| Gen
+    end
+
+    subgraph "Finance Service"
+        Listener[Finance Event Consumer]
+        FinService[Finance Core Logic]
+        FinDB[(Finance DB)]
+        
+        Gen -->|Consume Events| Listener
+        Listener -->|Trigger| FinService
+        FinService -->|Read/Write| FinDB
+        
+        FinService -->|Publish: payment.processed| Gen
+    end
+
+    subgraph "Integrations"
+        FinService -->|HTTP Post| ExtPayment[Internal Payment Channel]
+    end
 ```
 
 ## Data Entities

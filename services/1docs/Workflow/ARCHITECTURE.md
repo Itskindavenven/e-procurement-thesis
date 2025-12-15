@@ -2,26 +2,27 @@
 
 ## High-Level Diagram
 
+The Workflow Service operates as an orchestration engine that reacts to domain events to start processes, and emits events when tasks are completed.
+
 ```mermaid
 graph TD
-    Client[Client App] -->|HTTP| Gateway
+    Client[Client App] -->|HTTP: Task Complete| Gateway
     Gateway -->|Forward| WFController
 
-    subgraph "External Services"
-        Pro[Business Service]
-        Notifier[Notification Service]
+    subgraph "Event Bus (Kafka)"
+         Events[Events: procurement.created, vendor.registered]
     end
 
-    Pro -->|Start Process| WFController
-    
     subgraph "Workflow Service"
-        WFController -->|API| Engine[BPMN Engine (Camunda/Flowable)]
+        Listener[Event Consumer] -->|Start specific process| Engine
+        WFController -->|API| Engine[BPMN Engine]
         Engine -->|Persist State| WFDB[(Workflow DB)]
         
-        Engine -->|Service Task| ExternalTaskWorker
+        Engine -->|Service Task: Emit Event| Producer[Event Producer]
     end
 
-    ExternalTaskWorker -->|Async| Notifier
+    Events -->|Consume| Listener
+    Producer -->|Publish: workflow.task.assigned| Events
 ```
 
 ## Component Description
